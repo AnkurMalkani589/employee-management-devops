@@ -1,0 +1,48 @@
+# ===============================
+# Python
+# ===============================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+venv/
+backend/venv/
+
+# Environment Variables
+.env
+.env.*
+
+# Logs
+*.log
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# macOS
+.DS_Store
+
+# Linux
+*~
+
+# ===============================
+# Future Frontend (React)
+# ===============================
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+
+# ===============================
+# Future Docker
+# ===============================
+*.tar
+
+# ===============================
+# Testing
+# ===============================
+.pytest_cache/
+.coverage
+htmlcov/
