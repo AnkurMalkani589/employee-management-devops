@@ -5,10 +5,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Virtual Environments
-venv/
-backend/venv/
-
 # Environment Variables
 .env
 .env.*
@@ -46,3 +42,9 @@ frontend/dist/
 .pytest_cache/
 .coverage
 htmlcov/
+# ===============================
+# Virtual Environments
+# ===============================
+venv/
+backend/venv/
+backend/.ci-venv/
