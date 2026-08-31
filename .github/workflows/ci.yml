@@ -5,6 +5,10 @@ on:
     branches:
       - feature/backend-api
 
+  pull_request:
+    branches:
+      - main
+
 jobs:
   test:
     runs-on: ubuntu-latest
