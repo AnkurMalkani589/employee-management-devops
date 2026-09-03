@@ -1,0 +1,49 @@
+name: Employee Management CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to testing server
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+          ssh -i ~/.ssh/deploy_key \
+            "$DEPLOY_USER@$DEPLOY_HOST" << 'EOF'
+              set -e
+
+              cd /home/ubuntu/employee-management-devops
+
+              echo "Pulling latest code..."
+              git pull origin main
+
+              echo "Installing backend dependencies..."
+              /home/ubuntu/employee-management-devops/backend/venv/bin/pip install -r backend/requirements.txt
+
+              echo "Restarting employee-api..."
+              sudo systemctl restart employee-api
+
+              echo "Checking service..."
+              sudo systemctl is-active --quiet employee-api
+
+              echo "Checking API..."
+              curl --fail http://127.0.0.1:8000/
+
+              echo "Deployment successful!"
+          EOF
