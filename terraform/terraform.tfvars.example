@@ -1,0 +1,18 @@
+# Copy to terraform.tfvars and fill in. NEVER commit real secrets.
+# Provide the DB password out-of-band instead, e.g.:
+#   $env:TF_VAR_db_password = "..."      (PowerShell)
+#   export TF_VAR_db_password="..."      (bash)
+
+aws_region   = "us-east-1"
+project_name = "employee-management"
+environment  = "dev"
+
+instance_type     = "t3.small"
+allowed_ssh_cidr  = "0.0.0.0/0"   # restrict to your IP in real environments
+db_instance_class = "db.t3.micro"
+
+# Set true to provision managed RDS instead of the compose Postgres.
+create_rds = false
+
+# Set to your repo to enable keyless GitHub OIDC deploys.
+# github_repo = "myorg/employee-management-devops"

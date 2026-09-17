@@ -25,26 +25,49 @@ __pycache__/
 *~
 
 # ===============================
-# Future Frontend (React)
+# Frontend (Node)
 # ===============================
-frontend/node_modules/
-frontend/build/
+node_modules/
 frontend/dist/
-
+frontend/coverage/
+*.tsbuildinfo
 # ===============================
-# Future Docker
+# Docker / build artifacts
 # ===============================
 *.tar
-
 # ===============================
 # Testing
 # ===============================
 .pytest_cache/
 .coverage
 htmlcov/
+
 # ===============================
 # Virtual Environments
 # ===============================
 venv/
+.venv/
+backend/.venv/
 backend/venv/
 backend/.ci-venv/
+
+# ===============================
+# Terraform
+# ===============================
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/*.tfvars
+!terraform/terraform.tfvars.example
+# ===============================
+# Ansible
+# ===============================
+ansible/inventory.ini
+ansible/*.retry
+# ===============================
+# Runtime state (deploy / db)
+# ===============================
+.deployed_tag
+.previous_image_tag
+backups/
+*.dump

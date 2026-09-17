@@ -1,0 +1,44 @@
+# Optional observability overlay.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.observability.yml up -d
+#
+# Adds Prometheus (UI on :9090) and Grafana (UI on :3000) scraping the backend
+# /metrics endpoint. Kept separate so the core stack stays lean.
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=15d"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - app_net
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - app_net
+
+volumes:
+  prometheus_data:
+  grafana_data:

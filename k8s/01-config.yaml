@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: employee-management
+  labels:
+    app.kubernetes.io/part-of: employee-management
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: employee-management
+data:
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "INFO"
+  POSTGRES_DB: "employees"
+  POSTGRES_HOST: "postgres"
+  POSTGRES_PORT: "5432"
+  SEED_ON_STARTUP: "true"
+---
+# The password is NOT stored here. Create the secret out-of-band, e.g.:
+#   kubectl -n employee-management create secret generic app-secrets \
+#     --from-literal=POSTGRES_USER=employee \
+#     --from-literal=POSTGRES_PASSWORD='<strong-password>'
+#
+# This placeholder documents the expected keys without real values.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secrets
+  namespace: employee-management
+type: Opaque
+stringData:
+  POSTGRES_USER: "employee"
+  POSTGRES_PASSWORD: "REPLACE_ME"   # override with a real secret; see README

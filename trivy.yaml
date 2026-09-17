@@ -1,0 +1,22 @@
+# Trivy configuration.
+# Used by CI (aquasecurity/trivy-action) and locally: `trivy fs --config trivy.yaml .`
+
+severity:
+  - HIGH
+  - CRITICAL
+
+# Ignore findings that have no fix available yet.
+ignore-unfixed: true
+
+scan:
+  # Skip vendored / generated paths
+  skip-dirs:
+    - frontend/node_modules
+    - backend/.venv
+    - backend/.ci-venv
+    - .git
+  skip-files:
+    - "**/package-lock.json"
+
+# Return non-zero when findings are present, so CI fails loudly.
+exit-code: 1
