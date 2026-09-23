@@ -28,9 +28,12 @@ async function request(path, options = {}) {
     throw new ApiError(`Network error: ${err.message}`, 0);
   }
 
+  // Always consume the body, even when empty. Leaving a 204/empty response
+  // unconsumed can surface as a spurious `net::ERR_ABORTED` in the browser.
+  const text = await response.text();
+
   if (response.status === 204) return null;
 
-  const text = await response.text();
   const body = text ? JSON.parse(text) : null;
 
   if (!response.ok) {

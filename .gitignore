@@ -71,3 +71,4 @@ ansible/*.retry
 .previous_image_tag
 backups/
 *.dump
+.local-pgdata/

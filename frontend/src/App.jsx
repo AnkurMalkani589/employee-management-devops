@@ -1,102 +1,74 @@
-import { useCallback, useEffect, useState } from 'react';
-import { api } from './api.js';
+import { useState } from 'react';
+import AppShell from './components/AppShell.jsx';
+import Modal from './components/ui/Modal.jsx';
 import EmployeeForm from './components/EmployeeForm.jsx';
-import EmployeeList from './components/EmployeeList.jsx';
-import StatusBanner from './components/StatusBanner.jsx';
+import DashboardPage from './pages/DashboardPage.jsx';
+import EmployeesPage from './pages/EmployeesPage.jsx';
+import DepartmentsPage from './pages/DepartmentsPage.jsx';
+import ReportsPage from './pages/ReportsPage.jsx';
+import SettingsPage from './pages/SettingsPage.jsx';
+import HelpPage from './pages/HelpPage.jsx';
+import { useEmployeeData } from './hooks/useEmployeeData.js';
+import { useHashRoute } from './hooks/useHashRoute.js';
+import { useTheme } from './hooks/useTheme.js';
 
+/**
+ * App - wires the shell, routing and the shared employee data hook together.
+ *
+ * A single useEmployeeData instance is the source of truth, so every page
+ * reflects the same list and a create/update/delete anywhere refreshes all
+ * views without a full reload.
+ */
 export default function App() {
-  const [employees, setEmployees] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [editing, setEditing] = useState(null);
-
-  const loadEmployees = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      setEmployees(await api.listEmployees());
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadEmployees();
-  }, [loadEmployees]);
+  const [route, navigate] = useHashRoute('dashboard');
+  const [theme, toggleTheme] = useTheme();
+  const data = useEmployeeData();
+  const [createOpen, setCreateOpen] = useState(false);
 
   async function handleCreate(form) {
-    try {
-      await api.createEmployee(form);
-      setError(null);
-      await loadEmployees();
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    }
+    await data.create(form);
+    setCreateOpen(false);
   }
 
-  async function handleUpdate(id, form) {
-    try {
-      await api.updateEmployee(id, form);
-      setEditing(null);
-      setError(null);
-      await loadEmployees();
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    }
-  }
+  const shared = { data, onNavigate: navigate, onAddEmployee: () => setCreateOpen(true) };
 
-  async function handleDelete(id) {
-    if (!window.confirm('Delete this employee?')) return;
-    try {
-      await api.deleteEmployee(id);
-      setError(null);
-      await loadEmployees();
-    } catch (err) {
-      setError(err.message);
+  function renderPage() {
+    switch (route) {
+      case 'employees':
+        return <EmployeesPage {...shared} />;
+      case 'departments':
+        return <DepartmentsPage {...shared} />;
+      case 'reports':
+        return <ReportsPage {...shared} />;
+      case 'settings':
+        return <SettingsPage {...shared} theme={theme} onToggleTheme={toggleTheme} />;
+      case 'help':
+        return <HelpPage {...shared} />;
+      case 'dashboard':
+      default:
+        return <DashboardPage {...shared} />;
     }
   }
 
   return (
-    <div className="app">
-      <header className="app__header">
-        <h1>Employee Management</h1>
-        <p className="app__subtitle">
-          React + FastAPI + PostgreSQL · deployed via CI/CD
-        </p>
-      </header>
+    <AppShell
+      route={route}
+      onNavigate={navigate}
+      theme={theme}
+      onToggleTheme={toggleTheme}
+      employeeCount={data.stats.total}
+    >
+      {renderPage()}
 
-      <StatusBanner error={error} onDismiss={() => setError(null)} />
-
-      <main className="app__main">
-        <section className="card">
-          <h2>{editing ? `Edit employee #${editing.id}` : 'Add employee'}</h2>
-          <EmployeeForm
-            key={editing ? editing.id : 'new'}
-            initialValue={editing}
-            onSubmit={editing ? (f) => handleUpdate(editing.id, f) : handleCreate}
-            onCancel={editing ? () => setEditing(null) : null}
-          />
-        </section>
-
-        <section className="card">
-          <div className="card__head">
-            <h2>Employees</h2>
-            <button className="btn btn--ghost" onClick={loadEmployees} disabled={loading}>
-              {loading ? 'Loading…' : 'Refresh'}
-            </button>
-          </div>
-          <EmployeeList
-            employees={employees}
-            loading={loading}
-            onEdit={setEditing}
-            onDelete={handleDelete}
-          />
-        </section>
-      </main>
-    </div>
+      {createOpen && (
+        <Modal
+          title="Add employee"
+          description="Create a new employee record for your organisation."
+          onClose={() => setCreateOpen(false)}
+        >
+          <EmployeeForm onSubmit={handleCreate} onCancel={() => setCreateOpen(false)} />
+        </Modal>
+      )}
+    </AppShell>
   );
 }
