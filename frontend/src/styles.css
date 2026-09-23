@@ -50,12 +50,23 @@
   --dur-fast: 120ms;
   --dur: 180ms;
   --dur-slow: 260ms;
+  /* Long-form ambient loop durations. These MIRROR the `ambient` export in
+     src/lib/motion.ts (driftA: 34s, driftB: 42s) - keep the two in sync. */
+  --dur-ambient-a: 34s;
+  --dur-ambient-b: 42s;
 
   --z-sticky: 20;
   --z-sidebar: 40;
   --z-overlay: 50;
   --z-modal: 60;
   --z-toast: 70;
+  /* Ambient background layer. NOTE: must be 0, not negative. `body` paints an
+     opaque --bg background, so a fixed `z-index:-1` layer would be hidden
+     behind it. At z-index 0 the ambient sits above the body paint but below
+     all positioned app content (which creates its own stacking contexts via
+     position: sticky / relative / backdrop-filter). */
+  --z-ambient: 0;
+  --z-content: 1;
 
   /* Light theme */
   --bg: #f7f8fa;
@@ -99,41 +110,78 @@
 
   --sidebar-bg: #ffffff;
   --header-bg: rgba(255, 255, 255, 0.85);
+
+  /* ---- Premium layer (additive tokens for the cinematic UI) ---- */
+  /* Deep surfaces used by bento/spotlight cards, distinct from --surface. */
+  --surface-raised: #ffffff;
+  --surface-sunken: #eef0f4;
+  --surface-glass: rgba(255, 255, 255, 0.72);
+
+  /* Hairline borders for premium surfaces (1px, very low contrast). */
+  --hairline: rgba(16, 24, 40, 0.08);
+  --hairline-strong: rgba(16, 24, 40, 0.14);
+  /* Illuminated border shown on hover for interactive cards. */
+  --border-illuminated: rgba(59, 91, 219, 0.35);
+
+  /* Ambient background: glows + grid. Kept extremely subtle. */
+  --ambient-glow-a: rgba(59, 91, 219, 0.1);
+  --ambient-glow-b: rgba(124, 58, 237, 0.08);
+  --grid-line: rgba(16, 24, 40, 0.022);
+
+  /* Spotlight card glow colour (pointer-following radial). */
+  --spotlight: rgba(59, 91, 219, 0.12);
+
+  /* Elevation scale for premium surfaces (deeper than the base scale). */
+  --elevation-1: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 1px rgba(16, 24, 40, 0.04);
+  --elevation-2: 0 4px 12px -2px rgba(16, 24, 40, 0.1), 0 2px 6px -2px rgba(16, 24, 40, 0.06);
+  --elevation-3: 0 16px 36px -8px rgba(16, 24, 40, 0.16), 0 6px 12px -6px rgba(16, 24, 40, 0.08);
+  --elevation-4: 0 32px 64px -16px rgba(16, 24, 40, 0.22), 0 12px 24px -12px rgba(16, 24, 40, 0.1);
+
+  /* Large editorial type sizes for hero/section headers. */
+  --text-hero: clamp(2.5rem, 1.4rem + 4.2vw, 5rem);
+  --text-section: clamp(1.75rem, 1.2rem + 1.6vw, 2.75rem);
+
+  /* Extended spacing for cinematic section rhythm. */
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
 }
 
 [data-theme='dark'] {
-  --bg: #0b0d12;
-  --surface: #14161c;
-  --surface-2: #1a1d24;
-  --surface-3: #22262f;
-  --surface-hover: #1a1d24;
+  /* Near-black, monochrome foundation - the cinematic base. */
+  --bg: #08090c;
+  --surface: #101114;
+  --surface-2: #16181d;
+  --surface-3: #1e2026;
+  --surface-hover: #17191f;
 
-  --border: #262a33;
-  --border-strong: #363b46;
+  --border: #222429;
+  --border-strong: #2f3238;
 
-  --text: #f2f4f7;
-  --text-secondary: #b4bac6;
-  --text-muted: #8b93a1;
+  /* Off-white primary, muted secondary - restrained, editorial. */
+  --text: #f4f5f7;
+  --text-secondary: #a8adb8;
+  --text-muted: #777d8a;
 
-  --accent: #6d86f0;
-  --accent-hover: #7d93f3;
-  --accent-active: #8ba0f5;
-  --accent-soft: #1c2233;
-  --accent-contrast: #0b0d12;
+  --accent: #8ea2ff;
+  --accent-hover: #a3b3ff;
+  --accent-active: #b7c4ff;
+  --accent-soft: rgba(142, 162, 255, 0.11);
+  --accent-contrast: #08090c;
 
-  --success: #75e0a7;
-  --success-soft: #0f2419;
-  --success-border: #1d3b2a;
-  --warning: #f5c76a;
-  --warning-soft: #251c0c;
-  --warning-border: #40320f;
-  --danger: #f97066;
-  --danger-hover: #fb8a80;
-  --danger-soft: #2a1513;
-  --danger-border: #4a201c;
+  --success: #6ee7a8;
+  --success-soft: rgba(110, 231, 168, 0.1);
+  --success-border: rgba(110, 231, 168, 0.22);
+  --warning: #f0c674;
+  --warning-soft: rgba(240, 198, 116, 0.1);
+  --warning-border: rgba(240, 198, 116, 0.22);
+  --danger: #f87171;
+  --danger-hover: #fb8f8f;
+  --danger-soft: rgba(248, 113, 113, 0.1);
+  --danger-border: rgba(248, 113, 113, 0.22);
 
-  --focus-ring: 0 0 0 3px rgba(109, 134, 240, 0.45);
-  --focus-ring-danger: 0 0 0 3px rgba(249, 112, 102, 0.4);
+  --focus-ring: 0 0 0 3px rgba(142, 162, 255, 0.5);
+  --focus-ring-danger: 0 0 0 3px rgba(248, 113, 113, 0.45);
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
@@ -141,8 +189,35 @@
   --shadow-lg: 0 12px 28px -6px rgba(0, 0, 0, 0.6);
   --shadow-xl: 0 24px 48px -12px rgba(0, 0, 0, 0.7);
 
-  --sidebar-bg: #101219;
-  --header-bg: rgba(16, 18, 25, 0.85);
+  --sidebar-bg: #0b0c10;
+  --header-bg: rgba(8, 9, 12, 0.72);
+
+  /* ---- Premium layer (additive tokens for the cinematic UI) ---- */
+  --surface-raised: #15171e;
+  --surface-sunken: #08090d;
+  --surface-glass: rgba(20, 22, 28, 0.66);
+
+  --hairline: rgba(255, 255, 255, 0.07);
+  --hairline-strong: rgba(255, 255, 255, 0.12);
+  --border-illuminated: rgba(150, 170, 255, 0.42);
+
+  --ambient-glow-a: rgba(109, 134, 240, 0.13);
+  --ambient-glow-b: rgba(124, 58, 237, 0.1);
+  --grid-line: rgba(255, 255, 255, 0.016);
+
+  --spotlight: rgba(150, 170, 255, 0.13);
+
+  --elevation-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --elevation-2: 0 6px 16px -4px rgba(0, 0, 0, 0.6);
+  --elevation-3: 0 20px 44px -10px rgba(0, 0, 0, 0.7);
+  --elevation-4: 0 40px 80px -20px rgba(0, 0, 0, 0.8);
+
+  --text-hero: clamp(2.5rem, 1.4rem + 4.2vw, 5rem);
+  --text-section: clamp(1.75rem, 1.2rem + 1.6vw, 2.75rem);
+
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
 }
 
 /* ------------------------------------------------------------- 2. Base/reset */
@@ -225,11 +300,12 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 
 /* ------------------------------------------------------------- 3. App shell */
+/* NOTE: the shell grid now lives on .app-shell__content (see section 8) so the
+   ambient backdrop can be a sibling of the content rather than a grid cell.
+   This element is only the positioning context. */
 .app-shell {
-  display: grid;
-  grid-template-columns: var(--sidebar-w, 264px) 1fr;
+  position: relative;
   min-height: 100vh;
-  transition: grid-template-columns var(--dur-slow) var(--ease);
 }
 
 .app-shell[data-collapsed='true'] {
@@ -1222,7 +1298,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 
 @media (max-width: 1024px) {
-  .app-shell { grid-template-columns: 1fr; }
+  /* Grid collapse is handled on .app-shell__content in section 8. */
   .sidebar {
     position: fixed;
     top: 0;
@@ -1303,5 +1379,1067 @@ ul { margin: 0; padding: 0; list-style: none; }
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================================
+   7. Premium design system (additive layer)
+   ----------------------------------------------------------------------------
+   Cinematic surfaces, ambient background, editorial typography and layout
+   utilities. Built strictly on the section-1 tokens: no new colour literals,
+   no new durations and no new easings are introduced here. Ambient loop
+   timings come from --dur-ambient-a / --dur-ambient-b; every transition uses
+   the shared --dur-* and --ease-out tokens. Complements sections 1-6 without
+   overriding them.
+   ========================================================================== */
+
+/* ------------------------------------------------- 7.1 Ambient background */
+/* A fixed, GPU-composited cinematic backdrop. Sits at --z-ambient (0), i.e.
+   above the opaque body background paint but below app content (--z-content).
+   Deliberately NOT z-index:-1: body paints an opaque --bg, which would hide a
+   negative-index layer entirely. */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-ambient);
+  pointer-events: none;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* Two extremely restrained radial glows. blur() is applied once (static), the
+   animation only moves/scale the layer so it stays on the compositor. */
+.ambient__glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  will-change: transform;
+}
+
+.ambient__glow--a {
+  top: -22%;
+  left: 6%;
+  width: 46vw;
+  height: 46vw;
+  max-width: 780px;
+  max-height: 780px;
+  background: radial-gradient(circle, var(--ambient-glow-a), transparent 68%);
+  animation: ambient-drift-a var(--dur-ambient-a) var(--ease) infinite alternate;
+}
+
+.ambient__glow--b {
+  top: 2%;
+  right: 0%;
+  width: 38vw;
+  height: 38vw;
+  max-width: 620px;
+  max-height: 620px;
+  background: radial-gradient(circle, var(--ambient-glow-b), transparent 68%);
+  animation: ambient-drift-b var(--dur-ambient-b) var(--ease) infinite alternate;
+}
+
+/* Faint grid, masked so it fades well before the edges and never reads as a
+   wireframe over the content column. */
+.ambient__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 88px 88px;
+  /* The mask uses an opaque/transparent alpha ramp; there is no semantic
+     colour token for "fully opaque mask stop", so #000 here is a technical
+     alpha value, not a design colour. */
+  -webkit-mask-image: radial-gradient(ellipse 70% 42% at 50% 0%, #000 0%, transparent 72%);
+  mask-image: radial-gradient(ellipse 70% 42% at 50% 0%, #000 0%, transparent 72%);
+  opacity: 0.7;
+}
+
+/* Optional film grain. Static (no animation) - the SVG is inlined so there is
+   no network request and no runtime cost beyond compositing. */
+.ambient__noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.022;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Content wrapper that guarantees app UI paints above the ambient layer. */
+.ambient-content {
+  position: relative;
+  z-index: var(--z-content);
+}
+
+@keyframes ambient-drift-a {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(3%, 4%, 0) scale(1.08); }
+}
+
+@keyframes ambient-drift-b {
+  from { transform: translate3d(0, 0, 0) scale(1.05); }
+  to { transform: translate3d(-4%, 3%, 0) scale(1); }
+}
+
+/* Standalone background treatments for section/card interiors. */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.bg-dots {
+  background-image: radial-gradient(var(--grid-line) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+/* -------------------------------------------------- 7.2 Editorial typography */
+.text-hero {
+  font-size: var(--text-hero);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  font-weight: 600;
+  margin: 0;
+}
+
+.text-section {
+  font-size: var(--text-section);
+  line-height: 1.08;
+  letter-spacing: -0.028em;
+  font-weight: 600;
+  margin: 0;
+}
+
+.text-eyebrow {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.text-lede {
+  font-size: clamp(1rem, 0.95rem + 0.35vw, 1.25rem);
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* Single-phrase gradient: neutral to accent, deliberately restrained. */
+.text-gradient {
+  background-image: linear-gradient(
+    92deg,
+    var(--text) 0%,
+    var(--text) 42%,
+    var(--accent) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ------------------------------------------------------- 7.3 Premium surfaces */
+/* Raised panel with a hairline border and layered elevation. */
+.surface-panel {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--elevation-2);
+}
+
+/* Frosted surface for overlays / floating navigation. */
+.surface-glass {
+  background: var(--surface-glass);
+  backdrop-filter: saturate(160%) blur(16px);
+  -webkit-backdrop-filter: saturate(160%) blur(16px);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl);
+}
+
+/* Spotlight / glow card. <SpotlightCard /> writes --mx / --my on pointer move;
+   when unset the radial simply rests centred. Border illuminates on hover via
+   the data-hovered flag the component sets. */
+.spotlight-card {
+  position: relative;
+  isolation: isolate;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--elevation-2);
+  overflow: hidden;
+  transition:
+    border-color var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out);
+}
+
+.spotlight-card[data-hovered='true'] {
+  border-color: var(--border-illuminated);
+  box-shadow: var(--elevation-3);
+}
+
+.spotlight-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease-out);
+  background: radial-gradient(
+    var(--spot-radius, 340px) circle at var(--mx, 50%) var(--my, 0%),
+    var(--spot-color, var(--spotlight)),
+    transparent 62%
+  );
+}
+
+.spotlight-card[data-hovered='true']::before {
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------- 7.4 Bento layout */
+.bento {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+/* Mobile-first: every child spans the full width until a breakpoint widens it. */
+.bento > * {
+  grid-column: span 12;
+}
+
+@media (min-width: 720px) {
+  .bento > .bento--half { grid-column: span 6; }
+  .bento > .bento--third { grid-column: span 4; }
+  .bento > .bento--two-thirds { grid-column: span 8; }
+  .bento > .bento--quarter { grid-column: span 3; }
+}
+
+@media (min-width: 1100px) {
+  .bento > .bento--half-lg { grid-column: span 6; }
+  .bento > .bento--third-lg { grid-column: span 4; }
+  .bento > .bento--quarter-lg { grid-column: span 3; }
+  .bento > .bento--hero { grid-column: span 8; }
+  .bento > .bento--aside { grid-column: span 4; }
+}
+
+/* Very wide screens: allow a 3-up quarter row to breathe. */
+@media (min-width: 1440px) {
+  .bento { gap: var(--space-5); }
+}
+
+/* ---------------------------------------------------------- 7.5 Focus system */
+/* One consistent, accessible ring for every interactive element. Uses
+   :focus-visible so pointer users never see it, while keyboard users always
+   do. Does not remove or weaken any existing focus behaviour. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Never show a browser-default ring for pointer interaction. */
+:where(a, button, input, select, textarea, [tabindex]):focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ------------------------------------------------------------ 7.6 Utilities */
+.stack-tight { display: flex; flex-direction: column; gap: var(--space-2); }
+.stack-base { display: flex; flex-direction: column; gap: var(--space-4); }
+.stack-loose { display: flex; flex-direction: column; gap: var(--space-6); }
+
+.section-pad { padding-block: var(--space-16); }
+.section-pad-lg { padding-block: var(--space-24); }
+
+.hairline-top { border-top: 1px solid var(--hairline); }
+.hairline-bottom { border-bottom: 1px solid var(--hairline); }
+.hairline-left { border-left: 1px solid var(--hairline); }
+.hairline-right { border-right: 1px solid var(--hairline); }
+
+/* ------------------------------------------------------- 7.7 Reduced motion */
+/* The global kill-switch at the end of section 6 already paralyses CSS
+   animation and transitions. These rules additionally freeze the ambient
+   drift entirely (rather than running it at 0.001ms, which would still
+   tick) and remove the spotlight fade so nothing moves at all. */
+@media (prefers-reduced-motion: reduce) {
+  .ambient__glow--a,
+  .ambient__glow--b {
+    animation: none !important;
+    transform: none !important;
+  }
+  .spotlight-card::before {
+    transition: none !important;
+  }
+  .spotlight-card {
+    transition: none !important;
+  }
+}
+
+/* ============================================================================
+   8. Premium app shell (Phase 2)
+   ----------------------------------------------------------------------------
+   Refines the global shell established in section 3 into a cinematic
+   command-center frame. Every surface, border, shadow and transition here is
+   drawn from the section-1 tokens; no new colours, durations or easings are
+   introduced. Layer order is explicit:
+       ambient backdrop  -> --z-ambient
+       app content       -> --z-content
+       sticky header     -> --z-sticky
+       drawer            -> --z-sidebar
+   ========================================================================== */
+
+/* -------------------------------------------------- 8.1 Shell composition */
+/* The shell is the positioning context for the ambient layer + content. */
+.app-shell {
+  position: relative;
+  background: transparent; /* let the ambient layer show through */
+}
+
+/* Content wrapper sits above the ambient layer at --z-content. */
+.app-shell__content {
+  display: grid;
+  grid-template-columns: var(--sidebar-w, 264px) 1fr;
+  min-height: 100vh;
+  transition: grid-template-columns var(--dur-slow) var(--ease);
+}
+
+.app-shell[data-collapsed='true'] .app-shell__content {
+  --sidebar-w: 76px;
+}
+
+/* The main column keeps the header sticky without fighting the grid. */
+.main-col {
+  min-width: 0;
+}
+
+/* -------------------------------------------- 8.2 Navigation (premium rail) */
+/* The rail is translucent so the ambient glows read faintly through it,
+   giving the layered depth the reference language calls for. */
+.sidebar {
+  background: var(--sidebar-bg);
+  backdrop-filter: saturate(140%) blur(14px);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  border-right: 1px solid var(--hairline);
+}
+
+/* Brand mark: keep the accent gradient, add a faint inner highlight. */
+.brand-mark {
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-mark__glyph {
+  position: relative;
+  z-index: 1;
+  letter-spacing: 0.02em;
+}
+
+.brand-mark::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  pointer-events: none;
+}
+
+/* Nav items: quiet by default, illuminated on hover, clearly latched when
+   active. A thin accent bar marks the current route. */
+.nav-item {
+  position: relative;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.nav-item:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.nav-item[aria-current='page'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--hairline);
+}
+
+/* Active route indicator bar. */
+.nav-item[aria-current='page']::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 60%;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+}
+
+/* Collapsed rail: hide the indicator bar so it does not sit against the edge. */
+.app-shell[data-collapsed='true'] .nav-item[aria-current='page']::before {
+  opacity: 0;
+}
+
+/* Section labels read as quiet structure, not headings. */
+.nav-section-label {
+  letter-spacing: 0.14em;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------- 8.3 Header (glass bar) */
+.app-header {
+  background: var(--header-bg);
+  backdrop-filter: saturate(180%) blur(18px);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  border-bottom: 1px solid var(--hairline);
+}
+
+/* Breadcrumb: the current page reads first, its context second. */
+.app-header__crumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  font-size: var(--text-sm);
+}
+
+.app-header__crumb-root {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+  color: var(--text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-header__crumb-sep {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* Header controls: consistent hit area, subtle hover lift. */
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.app-header__actions .icon-btn {
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+/* ------------------------------------------------- 8.4 Content container */
+/* A consistent content rhythm: generous, centred, capped for readability. */
+.page {
+  width: 100%;
+  max-width: 1400px;
+  margin-inline: auto;
+  padding: var(--space-8) var(--space-6) var(--space-16);
+}
+
+/* Wide screens breathe more; the cap keeps line length comfortable. */
+@media (min-width: 1600px) {
+  .page {
+    max-width: 1520px;
+  }
+}
+
+/* ------------------------------------------------------- 8.5 Drawer scrim */
+.drawer-scrim {
+  background: rgba(8, 9, 12, 0.6);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+/* --------------------------------------------------------- 8.6 Responsive */
+@media (max-width: 1024px) {
+  .app-shell__content {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    /* Full-opacity panel when it is the active drawer. */
+    background: var(--sidebar-bg);
+  }
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: var(--space-5) var(--space-4) var(--space-12);
+  }
+
+  .app-header {
+    padding-inline: var(--space-4);
+  }
+
+  /* Prevent the breadcrumb from ever colliding with the action cluster. */
+  .app-header__crumb {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .app-header__crumb-root {
+    max-width: 40vw;
+  }
+}
+
+@media (max-width: 420px) {
+  /* Only the avatar remains in the action cluster on the narrowest screens;
+     the theme toggle stays reachable in Settings. */
+  .app-header__actions {
+    gap: var(--space-1);
+  }
+
+  .app-header__crumb-root {
+    max-width: 34vw;
+  }
+}
+
+/* --------------------------------------------------- 8.7 Reduced motion */
+/* Section 7.7 already freezes the ambient drift; here we also remove the
+   shell's own transitions so navigation and header state changes are instant
+   for users who request it. */
+@media (prefers-reduced-motion: reduce) {
+  .app-shell__content,
+  .nav-item,
+  .app-header__actions .icon-btn {
+    transition: none !important;
+  }
+}
+
+/* ============================================================================
+   9. Workforce Command Center (Phase 3 - dashboard)
+   ----------------------------------------------------------------------------
+   Scoped to the dashboard. Every colour, space, radius, shadow and duration
+   comes from the section-1 tokens plus the section-7 premium layer; no new
+   tokens are introduced. The shell (sections 3 + 8) is untouched.
+   ========================================================================== */
+
+.command-center {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+/* ------------------------------------------------------------- 9.1 Hero */
+.cc-hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 46rem;
+  padding-top: var(--space-2);
+}
+
+.cc-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* A single slow pulse to mark "live" - disabled under reduced motion. */
+.cc-hero__pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--success);
+  box-shadow: 0 0 0 0 var(--success);
+  animation: cc-pulse 2.8s var(--ease) infinite;
+}
+
+@keyframes cc-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(110, 231, 168, 0.5); }
+  70% { box-shadow: 0 0 0 7px rgba(110, 231, 168, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(110, 231, 168, 0); }
+}
+
+.cc-hero__title {
+  margin-top: var(--space-1);
+}
+
+.cc-hero__lede {
+  max-width: 34rem;
+}
+
+.cc-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+/* Operational context readout under the actions. */
+.cc-hero__context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin: var(--space-4) 0 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--hairline);
+}
+
+.cc-context {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cc-context dt {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.cc-context dd {
+  margin: 0;
+  font-size: var(--text-h3);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------- 9.2 Sections */
+.cc-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.cc-section__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 40rem;
+}
+
+.cc-section__sub {
+  font-size: var(--text-body);
+}
+
+.cc-empty {
+  padding: var(--space-4);
+}
+
+.cc-alert {
+  margin-top: var(--space-2);
+}
+
+/* -------------------------------------------------------- 9.3 Metrics */
+.cc-metrics {
+  align-items: stretch;
+}
+
+.metric {
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  height: 100%;
+}
+
+.metric__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.metric__icon {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.metric__value {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: clamp(2.25rem, 1.6rem + 2vw, 3.25rem);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric__suffix {
+  font-size: var(--text-h3);
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.metric__skeleton {
+  display: block;
+  width: 4.5rem;
+  height: 2.4rem;
+}
+
+.metric__foot {
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+  margin-top: auto;
+}
+
+/* --------------------------------------------------------- 9.4 Panels */
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.panel__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-5) var(--space-4);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.panel__title {
+  font-size: var(--text-h2);
+  font-weight: 600;
+}
+
+.panel__sub {
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.panel__body {
+  padding: var(--space-5);
+  flex: 1;
+}
+
+.panel__body--center {
+  display: grid;
+  place-items: center;
+}
+
+.panel__note {
+  margin-top: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* Activity list reads flush to the panel edges. */
+.panel--flush .activity {
+  padding-bottom: var(--space-2);
+}
+
+/* ------------------------------------------------- 9.5 Workforce map */
+.wf-map {
+  margin: 0;
+  width: 100%;
+  max-width: 420px;
+}
+
+.wf-map__svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.wf-map__link {
+  stroke: var(--border-strong);
+  stroke-width: 1;
+  opacity: 0.55;
+}
+
+.wf-map__leaf {
+  fill: var(--text-muted);
+}
+
+.wf-map__halo {
+  fill: var(--accent);
+  opacity: 0.08;
+}
+
+.wf-map__hub {
+  fill: var(--accent);
+}
+
+.wf-map__label {
+  fill: var(--text-secondary);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.wf-map__count {
+  fill: var(--accent-contrast);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.wf-map__caption {
+  margin-top: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* --------------------------------------------- 9.6 Distribution meter */
+.dist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.dist__bar {
+  display: flex;
+  height: 10px;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  background: var(--surface-2);
+  gap: 2px;
+}
+
+.dist__seg {
+  transform-origin: left center;
+  border-radius: var(--radius-full);
+  min-width: 6px;
+}
+
+.dist__seg--0 { background: var(--accent); }
+.dist__seg--1 { background: #8b5cf6; }
+.dist__seg--2 { background: #06b6d4; }
+.dist__seg--3 { background: #f59e0b; }
+.dist__seg--4 { background: #ec4899; }
+.dist__seg--5 { background: var(--text-muted); }
+
+.dist__legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.dist__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.dist__swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.dist__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dist__value {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------- 9.7 Activity feed */
+.activity {
+  display: flex;
+  flex-direction: column;
+}
+
+.activity__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.activity__item:last-child {
+  border-bottom: none;
+}
+
+.activity__meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.activity__name {
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+
+.activity__sub {
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+}
+
+.activity__time {
+  margin-left: auto;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.cc-inline-empty {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-5);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+/* ---------------------------------------------------- 9.8 Status rows */
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  font-size: var(--text-sm);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.status-row:last-of-type {
+  border-bottom: none;
+}
+
+.status-row__icon {
+  color: var(--text-muted);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.status-row__label {
+  color: var(--text-secondary);
+}
+
+.status-row__value {
+  margin-left: auto;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+}
+
+.status-row .badge {
+  margin-left: auto;
+}
+
+/* -------------------------------------------- 9.9 Quick actions + roster */
+.cc-ops__stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.roster-card {
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  height: 100%;
+}
+
+.roster-card__meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.roster-card__name {
+  font-weight: 600;
+  font-size: var(--text-h3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roster-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: auto;
+}
+
+.roster-card__date {
+  font-size: var(--text-xs);
+}
+
+/* ------------------------------------------------------- 9.10 Responsive */
+@media (max-width: 1100px) {
+  /* The map/distribution pair stacks; the ops stack loses its inner gap. */
+  .cc-ops__stack {
+    gap: var(--space-4);
+  }
+}
+
+@media (max-width: 760px) {
+  .command-center {
+    gap: var(--space-10);
+  }
+
+  /* Tighter, still legible hero on small screens. */
+  .cc-hero__context {
+    gap: var(--space-6);
+    margin-top: var(--space-4);
+  }
+
+  .cc-hero__actions .btn,
+  .cc-hero__actions .magnetic {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .metric__value {
+    font-size: 2rem;
+  }
+
+  .panel__head {
+    padding: var(--space-4);
+  }
+
+  .panel__body {
+    padding: var(--space-4);
+  }
+
+  .activity__item {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .wf-map {
+    max-width: 320px;
+  }
+}
+
+@media (max-width: 420px) {
+  .cc-hero__context {
+    gap: var(--space-4) var(--space-6);
+  }
+
+  .cc-context dd {
+    font-size: var(--text-body);
+  }
+}
+
+/* ---------------------------------------------------- 9.11 Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .cc-hero__pulse {
+    animation: none !important;
   }
 }

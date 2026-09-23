@@ -27,3 +27,33 @@ if (typeof window.localStorage?.getItem !== 'function') {
     },
   });
 }
+
+// jsdom does not implement IntersectionObserver, which the motion primitives
+// (Reveal / Stagger / AnimatedCounter) rely on for viewport-triggered reveal.
+// The stub immediately reports every observed element as intersecting, so
+// content renders in tests exactly as it would once scrolled into view.
+if (typeof window.IntersectionObserver === 'undefined') {
+  class MockIntersectionObserver {
+    constructor(callback) {
+      this.callback = callback;
+    }
+
+    observe(element) {
+      this.callback(
+        [{ isIntersecting: true, target: element, intersectionRatio: 1 }],
+        this,
+      );
+    }
+
+    unobserve() {}
+
+    disconnect() {}
+
+    takeRecords() {
+      return [];
+    }
+  }
+
+  window.IntersectionObserver = MockIntersectionObserver;
+  globalThis.IntersectionObserver = MockIntersectionObserver;
+}

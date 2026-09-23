@@ -47,7 +47,8 @@ describe('Employee detail panel', () => {
     expect(within(dialog).getByText('Work email')).toBeInTheDocument();
     expect(within(dialog).getByText('ada@example.com')).toBeInTheDocument();
     expect(within(dialog).getByText('Department')).toBeInTheDocument();
-    expect(within(dialog).getByText('Engineering')).toBeInTheDocument();
+    // Department is shown both as a summary badge and as a detail value.
+    expect(within(dialog).getAllByText('Engineering').length).toBeGreaterThan(0);
   });
 
   it('closes on Escape', async () => {

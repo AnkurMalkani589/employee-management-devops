@@ -1,17 +1,22 @@
-import { Menu, PanelLeft, Bell, Sun, Moon } from 'lucide-react';
+import { Menu, PanelLeft, Bell, Sun, Moon, Command } from 'lucide-react';
 import { ROUTE_META } from '../navigation.js';
 
 /**
- * Header - sticky topbar with a menu/collapse control, page title + breadcrumb,
- * theme toggle and notifications. `onToggleSidebar` opens the drawer on mobile
- * or collapses the rail on desktop.
+ * Header - the global top bar.
+ *
+ * Left: navigation toggle (hamburger on mobile, rail collapse on desktop).
+ * Centre: page context as a breadcrumb navigation landmark.
+ * Right: theme, notifications and the account avatar - the same controls as
+ * before, with the glass surface coming from the shell styles.
+ *
+ * `onToggleSidebar` opens the drawer on mobile / collapses the rail on desktop.
  */
 export default function Header({ route, onToggleSidebar, theme, onToggleTheme }) {
   const meta = ROUTE_META[route] || ROUTE_META.dashboard;
   const isDark = theme === 'dark';
 
   return (
-    <header className="app-header">
+    <header className="app-header surface-glass">
       <button
         className="icon-btn menu-toggle"
         onClick={onToggleSidebar}
@@ -29,8 +34,14 @@ export default function Header({ route, onToggleSidebar, theme, onToggleTheme })
       </button>
 
       <nav className="app-header__crumb" aria-label="Breadcrumb">
-        <span>{meta.title}</span>
-        <span aria-hidden="true">/</span>
+        <span className="app-header__crumb-root">
+          <Command size={14} aria-hidden="true" />
+          <span className="sr-only">Current location: </span>
+          {meta.title}
+        </span>
+        <span className="app-header__crumb-sep" aria-hidden="true">
+          /
+        </span>
         <span className="muted">{meta.crumb}</span>
       </nav>
 

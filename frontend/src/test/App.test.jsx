@@ -54,11 +54,15 @@ describe('App', () => {
     mockList(SAMPLE);
     renderApp();
 
-    await waitFor(() => expect(screen.getByText('Total Employees')).toBeInTheDocument());
-    // Department distribution is derived from the same data
-    expect(screen.getByText('Distinct departments')).toBeInTheDocument();
-    expect(screen.getByText('DevOps')).toBeInTheDocument();
-    expect(screen.getByText('HR')).toBeInTheDocument();
+    // Editorial hero + real derived metric labels.
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 1, name: /workforce/i })).toBeInTheDocument(),
+    );
+    expect(screen.getByText('Total employees')).toBeInTheDocument();
+    expect(screen.getByText('Distinct organisational units')).toBeInTheDocument();
+    // Both departments are represented in the workforce intelligence panel.
+    expect(screen.getAllByText('DevOps').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('HR').length).toBeGreaterThan(0);
   });
 
   it('shows an empty state when there are no employees', async () => {
@@ -67,10 +71,36 @@ describe('App', () => {
     expect(await screen.findByText(/no employees yet/i)).toBeInTheDocument();
   });
 
+  it('reports live platform status from the health endpoint', async () => {
+    global.fetch = vi.fn(async (url) => {
+      if (String(url).includes('/health')) {
+        return {
+          ok: true,
+          status: 200,
+          text: async () =>
+            JSON.stringify({
+              status: 'ok',
+              database: 'ok',
+              version: '1.0.0',
+              environment: 'test',
+            }),
+        };
+      }
+      return { ok: true, status: 200, text: async () => JSON.stringify(SAMPLE) };
+    });
+
+    renderApp();
+
+    // The status panel only ever shows real values from /health.
+    expect(await screen.findByText('Operational')).toBeInTheDocument();
+    expect(screen.getByText('Platform status')).toBeInTheDocument();
+    expect(screen.getByText('Database')).toBeInTheDocument();
+  });
+
   it('navigates to the Employees page and lists people', async () => {
     mockList(SAMPLE);
     renderApp();
-    await waitFor(() => expect(screen.getByText('Total Employees')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Total employees')).toBeInTheDocument());
 
     await userEvent.click(screen.getByRole('button', { name: /^Employees/ }));
 
@@ -82,7 +112,7 @@ describe('App', () => {
   it('filters employees by search query', async () => {
     mockList(SAMPLE);
     renderApp();
-    await waitFor(() => expect(screen.getByText('Total Employees')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Total employees')).toBeInTheDocument());
     await userEvent.click(screen.getByRole('button', { name: /^Employees/ }));
     const table = await screen.findByRole('table');
     await within(table).findByText('Ankur Sharma');
@@ -98,12 +128,27 @@ describe('App', () => {
     renderApp();
     await screen.findByText(/no employees yet/i);
 
-    await userEvent.click(screen.getByRole('button', { name: /add employee/i }));
+    // Both the hero CTA and the empty-state CTA are legitimate entry points.
+    await userEvent.click(screen.getAllByRole('button', { name: /add employee/i })[0]);
 
     const dialog = await screen.findByRole('dialog');
+    // Inside the dialog, the submit button shares the label - scope to it.
     await userEvent.click(within(dialog).getByRole('button', { name: /add employee/i }));
 
     expect(await screen.findByText(/name is required/i)).toBeInTheDocument();
     expect(screen.getByText(/email is required/i)).toBeInTheDocument();
+  });
+
+  it('exposes multiple legitimate entry points to add an employee', async () => {
+    mockList(SAMPLE);
+    renderApp();
+    await waitFor(() => expect(screen.getByText('Total employees')).toBeInTheDocument());
+
+    // Hero CTA + quick action are both legitimate, real controls.
+    const ctas = screen.getAllByRole('button', { name: /add employee/i });
+    expect(ctas.length).toBeGreaterThanOrEqual(2);
+
+    await userEvent.click(ctas[0]);
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
   });
 });

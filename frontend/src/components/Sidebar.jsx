@@ -32,7 +32,7 @@ export default function Sidebar({ route, onNavigate, collapsed, employeeCount })
     <aside className="sidebar" aria-label="Primary">
       <div className="sidebar__brand">
         <span className="brand-mark" aria-hidden="true">
-          EM
+          <span className="brand-mark__glyph">EM</span>
         </span>
         <span className="brand-text">
           <span className="brand-name">Employee Management</span>
