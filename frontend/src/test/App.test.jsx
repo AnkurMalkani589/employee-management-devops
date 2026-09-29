@@ -54,13 +54,14 @@ describe('App', () => {
     mockList(SAMPLE);
     renderApp();
 
-    // Editorial hero + real derived metric labels.
+    // Editorial hero + the Workforce Pulse instrument (real values).
     await waitFor(() =>
       expect(screen.getByRole('heading', { level: 1, name: /workforce/i })).toBeInTheDocument(),
     );
-    expect(screen.getByText('Total employees')).toBeInTheDocument();
-    expect(screen.getByText('Distinct organisational units')).toBeInTheDocument();
-    // Both departments are represented in the workforce intelligence panel.
+    expect(screen.getByText('Workforce Pulse')).toBeInTheDocument();
+    expect(screen.getByText('people in the directory')).toBeInTheDocument();
+    expect(screen.getByText('Workforce constellation')).toBeInTheDocument();
+    // Real department labels surface in the constellation + distribution.
     expect(screen.getAllByText('DevOps').length).toBeGreaterThan(0);
     expect(screen.getAllByText('HR').length).toBeGreaterThan(0);
   });
@@ -94,13 +95,14 @@ describe('App', () => {
     // The status panel only ever shows real values from /health.
     expect(await screen.findByText('Operational')).toBeInTheDocument();
     expect(screen.getByText('Platform status')).toBeInTheDocument();
-    expect(screen.getByText('Database')).toBeInTheDocument();
+    // "Database" appears in both the Pulse readout and the status panel.
+    expect(screen.getAllByText('Database').length).toBeGreaterThan(0);
   });
 
   it('navigates to the Employees page and lists people', async () => {
     mockList(SAMPLE);
     renderApp();
-    await waitFor(() => expect(screen.getByText('Total employees')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Workforce Pulse')).toBeInTheDocument());
 
     await userEvent.click(screen.getByRole('button', { name: /^Employees/ }));
 
@@ -112,7 +114,7 @@ describe('App', () => {
   it('filters employees by search query', async () => {
     mockList(SAMPLE);
     renderApp();
-    await waitFor(() => expect(screen.getByText('Total employees')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Workforce Pulse')).toBeInTheDocument());
     await userEvent.click(screen.getByRole('button', { name: /^Employees/ }));
     const table = await screen.findByRole('table');
     await within(table).findByText('Ankur Sharma');
@@ -139,16 +141,14 @@ describe('App', () => {
     expect(screen.getByText(/email is required/i)).toBeInTheDocument();
   });
 
-  it('exposes multiple legitimate entry points to add an employee', async () => {
+  it('opens the add-employee flow from the hero CTA', async () => {
     mockList(SAMPLE);
     renderApp();
-    await waitFor(() => expect(screen.getByText('Total employees')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Workforce Pulse')).toBeInTheDocument());
 
-    // Hero CTA + quick action are both legitimate, real controls.
-    const ctas = screen.getAllByRole('button', { name: /add employee/i });
-    expect(ctas.length).toBeGreaterThanOrEqual(2);
-
-    await userEvent.click(ctas[0]);
+    // The hero carries the primary CTA; it must be a real, working control.
+    const cta = screen.getAllByRole('button', { name: /add employee/i })[0];
+    await userEvent.click(cta);
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
   });
 });

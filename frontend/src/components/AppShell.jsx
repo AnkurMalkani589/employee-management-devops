@@ -62,7 +62,12 @@ export default function AppShell({ route, onNavigate, children, theme, onToggleT
         )}
 
         <div className="main-col">
-          <Header route={route} onToggleSidebar={handleToggle} theme={theme} onToggleTheme={onToggleTheme} />
+          <Header
+            route={route}
+            onToggleSidebar={handleToggle}
+            theme={theme}
+            onToggleTheme={onToggleTheme}
+          />
           <main className="page" id="main-content">
             {children}
           </main>

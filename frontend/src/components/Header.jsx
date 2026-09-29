@@ -1,4 +1,4 @@
-import { Menu, PanelLeft, Bell, Sun, Moon, Command } from 'lucide-react';
+import { Menu, PanelLeft, Bell, Sun, Moon } from 'lucide-react';
 import { ROUTE_META } from '../navigation.js';
 
 /**
@@ -35,7 +35,6 @@ export default function Header({ route, onToggleSidebar, theme, onToggleTheme })
 
       <nav className="app-header__crumb" aria-label="Breadcrumb">
         <span className="app-header__crumb-root">
-          <Command size={14} aria-hidden="true" />
           <span className="sr-only">Current location: </span>
           {meta.title}
         </span>
