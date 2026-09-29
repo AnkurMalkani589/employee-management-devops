@@ -15,11 +15,11 @@ import Alert from '../components/ui/Alert.jsx';
  * EmployeesPage - search, filter, sort, and full CRUD over the directory.
  * All state is client-side over the data the API returns (no backend changes).
  */
-export default function EmployeesPage({ data, selectedDepartment = '' }) {
+export default function EmployeesPage({ data }) {
   const { employees, loading, error, mutating, reload, create, update, remove, stats } = data;
 
   const [query, setQuery] = useState('');
-  const [department, setDepartment] = useState(selectedDepartment);
+  const [department, setDepartment] = useState('');
   const [role, setRole] = useState('');
   const [sort, setSort] = useState({ key: 'created_at', direction: 'desc' });
 
@@ -29,21 +29,16 @@ export default function EmployeesPage({ data, selectedDepartment = '' }) {
   const [viewing, setViewing] = useState(null);
   const searchRef = useRef(null);
 
-  // Sync the department filter when a department card navigates here. The page
-  // can stay mounted between navigations, so this must react to prop changes
-  // rather than relying on the initial state alone.
-  useEffect(() => {
-    setDepartment(selectedDepartment);
-  }, [selectedDepartment]);
-
-  // Global shortcut: "/" focuses search (ignored while typing).
+  // Global shortcut: "/" or Ctrl/Cmd+K focuses search (ignored while typing).
   useEffect(() => {
     function onKeyDown(e) {
       const el = document.activeElement;
       const typing =
         el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
       if (typing) return;
-      if (e.key === '/') {
+      const isSlash = e.key === '/';
+      const isCmdK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k';
+      if (isSlash || isCmdK) {
         e.preventDefault();
         searchRef.current?.focus();
       }

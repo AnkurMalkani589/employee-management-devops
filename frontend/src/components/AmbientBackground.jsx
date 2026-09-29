@@ -14,7 +14,6 @@ export default function AmbientBackground() {
       <div className="ambient__grid" />
       <div className="ambient__glow ambient__glow--a" />
       <div className="ambient__glow ambient__glow--b" />
-      <div className="ambient__vignette" />
       <div className="ambient__noise" />
     </div>
   );

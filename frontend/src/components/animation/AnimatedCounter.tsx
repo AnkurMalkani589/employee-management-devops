@@ -33,46 +33,27 @@ export function AnimatedCounter({
   const inView = useInView(ref, viewportFocus);
   const reduced = useReducedMotion();
   const [display, setDisplay] = useState(reduced ? value : 0);
-  const started = useRef(false);
-
-  // Visibility gate. Motion's `useInView` is used when it reports true, but it
-  // is never the only path: if the element is laid out on screen we consider it
-  // visible. Measured on mount and whenever the value changes.
-  const [onScreen, setOnScreen] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || typeof el.getBoundingClientRect !== 'function') return;
-    const rect = el.getBoundingClientRect();
-    const vh = window.innerHeight || document.documentElement.clientHeight || 0;
-    setOnScreen(rect.top < vh && rect.bottom > 0);
-  }, [value, reduced]);
-
-  const visible = inView || onScreen || value > 0;
 
   useEffect(() => {
     if (reduced) {
       setDisplay(value);
       return undefined;
     }
-    if (!visible) return undefined;
+    if (!inView) return undefined;
 
-    // Re-run only when the value actually changes (e.g. 0 -> loaded).
     let raf = 0;
-    const from = started.current ? display : 0;
-    const to = value;
     const start = performance.now();
     const tick = (now: number) => {
       const t = Math.min((now - start) / (duration * 1000), 1);
+      // easeOutCubic
       const eased = 1 - Math.pow(1 - t, 3);
-      setDisplay(from + (to - from) * eased);
+      setDisplay(value * eased);
       if (t < 1) raf = requestAnimationFrame(tick);
-      else started.current = true;
+      else setDisplay(value);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-    // `display` is intentionally excluded: it is the animated output, not an input.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, value, duration, reduced]);
+  }, [inView, value, duration, reduced]);
 
   const formatted = display.toLocaleString(undefined, {
     minimumFractionDigits: decimals,

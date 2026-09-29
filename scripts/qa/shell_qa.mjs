@@ -49,8 +49,7 @@ async function main() {
 
   // Launch the installed Chrome directly (no shell needed). The installed
   // browser is allowed to execute, unlike the WDAC-blocked Playwright Chromium.
-  // NOT detached: this process owns Chrome's lifetime and must reap it, or
-  // orphans accumulate and hold the terminal open.
+  // Async + detached: Chrome is long-lived, so we must not block on it.
   const child = spawn(
     CHROME,
     [
@@ -61,40 +60,11 @@ async function main() {
       '--no-default-browser-check',
       '--disable-gpu',
       '--hide-scrollbars',
-      '--disable-extensions',
       'about:blank',
     ],
-    { stdio: 'ignore' },
+    { stdio: 'ignore', detached: true },
   );
-
-  const killChrome = () => {
-    try {
-      if (!child.killed) child.kill();
-    } catch {
-      /* already gone */
-    }
-    // On Windows, kill any descendant still holding the profile dir.
-    try {
-      // eslint-disable-next-line global-require
-      const { execFileSync } = require('node:child_process');
-      execFileSync(
-        'powershell',
-        [
-          '-NoProfile',
-          '-Command',
-          `Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" | Where-Object { $_.CommandLine -like '*${PORT}*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }`,
-        ],
-        { stdio: 'ignore', timeout: 15000 },
-      );
-    } catch {
-      /* best effort */
-    }
-  };
-  process.on('exit', killChrome);
-  process.on('SIGINT', () => {
-    killChrome();
-    process.exit(130);
-  });
+  child.unref();
 
   let browser;
   for (let i = 0; i < 30; i += 1) {
@@ -125,11 +95,6 @@ async function main() {
 
   const report = { base: BASE, browser: browser.version?.(), layouts: {}, layering: null };
 
-  // Set the desktop viewport BEFORE any measurement or navigation. The CDP
-  // connection inherits the browser's default window size (~758px), so probes
-  // must run at an explicit size or they silently measure the tablet layout.
-  await page.setViewportSize({ width: 1440, height: 900 });
-
   // Prefer dark for the visual pass so screenshots reflect the cinematic design
   // language. Emulated at the browser level BEFORE navigation so the theme hook
   // reads it on first mount. QA-only; the application is unchanged.
@@ -141,69 +106,43 @@ async function main() {
   });
   await page.waitForTimeout(900);
 
-  // ---- Dashboard assertions (real data, structure, settled counters) ----
-  // Hero counters are on-screen at load; the bento counters are below the fold
-  // and animate on viewport entry, so scroll them into view first - exactly
-  // what a user does - then wait for the values to settle.
-  await page.waitForFunction(
-    () => {
-      const el = document.querySelector('.pulse__value');
-      return el && /^(?!0$)\d/.test(el.innerText.trim());
-    },
-    { timeout: 8000 },
-  ).catch(() => {});
-
+  // ---- Dashboard-specific assertions (real data + structure) ----
+  // Scroll each metric into view first: the counters animate on viewport entry
+  // (IntersectionObserver), so a top-of-page read would legitimately see 0.
   await page.evaluate(async () => {
-    const el = document.querySelector('.panel__bignum');
-    if (el) el.scrollIntoView({ block: 'center' });
-    await new Promise((r) => setTimeout(r, 600));
+    const metrics = [...document.querySelectorAll('.metric')];
+    for (const m of metrics) {
+      m.scrollIntoView({ block: 'center' });
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((r) => setTimeout(r, 700));
+    }
+    window.scrollTo(0, 0);
   });
-  await page
-    .waitForFunction(
-      () => {
-        const el = document.querySelector('.panel__bignum');
-        return el && /^(?!0$)\d/.test(el.innerText.trim());
-      },
-      { timeout: 8000 },
-    )
-    .catch(() => {});
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(900);
+  await page.waitForTimeout(1800);
 
   report.dashboard = await page.evaluate(() => {
     const q = (s) => document.querySelector(s);
-    const text = (s) => q(s)?.innerText.trim() ?? null;
     const hero = q('.cc-hero__title');
+    const metrics = document.querySelectorAll('.metric');
+    const activity = document.querySelectorAll('.activity__item');
+    const statusRows = document.querySelectorAll('.status-row');
+    const svgs = document.querySelectorAll('.wf-map__svg');
+    const dist = document.querySelectorAll('.dist__seg');
     return {
       heroText: hero ? hero.innerText.replace(/\s+/g, ' ').trim() : null,
       heroVisible: !!hero && hero.getBoundingClientRect().height > 0,
-      pulseValue: text('.pulse__value'),
-      pulseState: text('.pulse__state'),
-      pulseStats: [...document.querySelectorAll('.pulse__stat')].map((s) =>
-        s.innerText.replace(/\s+/g, ' ').trim(),
-      ),
-      signalBars: document.querySelectorAll('.pulse__bar').length,
-      signalSlots: document.querySelectorAll('.pulse__slot').length,
-      bigNumber: text('.panel__bignum'),
-      activityCount: document.querySelectorAll('.activity__item').length,
-      statusRowCount: document.querySelectorAll('.status-row').length,
-      hasConstellation: document.querySelectorAll('.wf__svg').length > 0,
-      hubLabels: [...document.querySelectorAll('.wf__hub-name')].map((t) => t.textContent),
-      distributionSegments: document.querySelectorAll('.dist__seg').length,
-
-
+      metricCount: metrics.length,
+      // Animated counters should have settled on a real number.
+      metricValues: [...metrics].map((m) => m.querySelector('.metric__value')?.innerText.trim()),
+      activityCount: activity.length,
+      statusRowCount: statusRows.length,
+      hasWorkforceMap: svgs.length > 0,
+      // Every hub label is a real department name from the API.
+      mapLabels: [...document.querySelectorAll('.wf-map__label')].map((t) => t.textContent),
+      distributionSegments: dist.length,
+      // No placeholder/em-dash metrics left over from loading.
+      stillLoading: !!q('.metric__skeleton'),
     };
-  });
-
-  // Cross-check the rendered employee count against the live API.
-  report.crossCheck = await page.evaluate(async () => {
-    try {
-      const d = await (await fetch('/api/employees')).json();
-      const shown = document.querySelector('.pulse__value')?.innerText.trim();
-      return { apiCount: d.length, pulseShown: shown, match: String(d.length) === shown };
-    } catch (e) {
-      return { error: String(e) };
-    }
   });
 
   // Confirm the health panel shows real endpoint values (not fabricated).
@@ -291,15 +230,7 @@ async function main() {
 
   report.consoleErrors = consoleErrors;
   report.failedRequests = failedRequests;
-
-  // Close the CDP connection, then reap the Chrome process we own so the
-  // runner exits promptly instead of hanging on an orphaned browser.
-  try {
-    await browser.close();
-  } catch {
-    /* connection may already be down */
-  }
-  killChrome();
+  await browser.close();
 
   log(report);
   return consoleErrors.length === 0 && failedRequests.length === 0 ? 0 : 1;

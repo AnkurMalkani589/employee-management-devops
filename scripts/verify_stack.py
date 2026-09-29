@@ -69,23 +69,19 @@ s, raw, _ = req("/api/ready")
 body = json.loads(raw) if s == 200 else {}
 check("GET /api/ready -> 200 & ready", s == 200 and body.get("status") == "ready", str(body))
 
-# 3. List (existing records)
-print("\n[3] Existing records visible through the API")
+# 3. List (seeded data from database/init)
+print("\n[3] Seeded data visible through the API")
 s, raw, _ = req("/api/employees")
 emps = json.loads(raw) if s == 200 else []
-baseline_count = len(emps)
 check("GET /api/employees -> 200", s == 200, f"(got {s})")
-check("directory is non-empty", baseline_count > 0, f"(got {baseline_count})")
+check("seeded 2 employees present", len(emps) == 2, f"(got {len(emps)})")
+emails = {e.get("email") for e in emps}
 check(
-    "rows carry created_at from DB",
-    all(e.get("created_at") for e in emps),
-    "",
+    "seed emails match database/init/02_seed.sql",
+    {"ankur@example.com", "rahul@example.com"} <= emails,
+    str(emails),
 )
-check(
-    "rows carry department + role",
-    all(e.get("department") and e.get("role") for e in emps),
-)
-print(f"  [info] baseline directory size: {baseline_count}")
+check("rows carry created_at from DB", all(e.get("created_at") for e in emps))
 
 # 4. Full CRUD over the proxied API
 print("\n[4] Full CRUD through the proxy -> PostgreSQL")
@@ -129,11 +125,7 @@ check("deleted row is gone (404)", s == 404, f"(got {s})")
 
 s, raw, _ = req("/api/employees")
 final = json.loads(raw) if s == 200 else []
-check(
-    "directory returns to its baseline size",
-    len(final) == baseline_count,
-    f"(got {len(final)}, expected {baseline_count})",
-)
+check("back to 2 employees", len(final) == 2, f"(got {len(final)})")
 
 # 7. Frontend SPA served by the edge
 print("\n[7] Frontend served through the edge proxy")

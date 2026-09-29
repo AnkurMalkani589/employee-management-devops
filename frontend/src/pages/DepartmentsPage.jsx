@@ -53,7 +53,7 @@ export default function DepartmentsPage({ data, onNavigate }) {
             key={dept.name}
             className="card"
             style={{ textAlign: 'left', padding: 'var(--space-5)' }}
-            onClick={() => onNavigate('employees', dept.name)}
+            onClick={() => onNavigate('employees')}
           >
             <div className="row gap-3" style={{ marginBottom: 'var(--space-4)' }}>
               <span className="stat__icon" aria-hidden="true">
