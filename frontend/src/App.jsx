@@ -24,18 +24,26 @@ export default function App() {
   const [theme, toggleTheme] = useTheme();
   const data = useEmployeeData();
   const [createOpen, setCreateOpen] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState('');
 
   async function handleCreate(form) {
     await data.create(form);
     setCreateOpen(false);
   }
 
-  const shared = { data, onNavigate: navigate, onAddEmployee: () => setCreateOpen(true) };
+  const shared = {
+    data,
+    onNavigate: (next, department = '') => {
+      setSelectedDepartment(department);
+      navigate(next);
+    },
+    onAddEmployee: () => setCreateOpen(true),
+  };
 
   function renderPage() {
     switch (route) {
       case 'employees':
-        return <EmployeesPage {...shared} />;
+        return <EmployeesPage {...shared} selectedDepartment={selectedDepartment} />;
       case 'departments':
         return <DepartmentsPage {...shared} />;
       case 'reports':
